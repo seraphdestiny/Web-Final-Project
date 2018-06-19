@@ -1,0 +1,689 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<head>
+  <title>My A-Frame Scene</title>
+  <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" 
+		integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+   <style  type = "text/css">
+		.myEmbeddedScene { 
+			width:62%;
+			height:65%; }
+		.object-data-setting {		
+			position: absolute;
+			top: 15px;
+			right: 35px;
+			width: 34%;
+			height:62%;
+			background-color: lightBlue;
+			box-sizing: border-box;
+			overflow: auto; 
+			box-shadow:-4px -4px 3px rgba(20%,20%,40%,0.5);}
+
+		.object-data-table-red,
+		.object-data-table-yellow,
+		.object-data-table-blue, 
+		.object-data-table-green,
+		.object-data-table-Orange,
+		.object-data-table-purple{
+			position: absolute;
+			left: 14%;
+			width: 30%;
+			height: 32%;
+			box-sizing: border-box;
+			overflow: auto; 
+			text-align:center;
+			font-family: Helvetica, "Microsoft YaHei", "LiHei Pro", TW-Kai;	
+			background-color: LightCyan;
+			box-shadow:4px 4px 12px 4px rgba(20%,20%,40%,0.5);		
+		}
+		.object-data-table-red {
+			color: Red;
+		}
+		.object-data-table-yellow {
+			color: Gold;
+		}			
+		.object-data-table-blue {
+			color: DodgerBlue;
+		}
+		.object-data-table-green {
+			color: Lime  ;
+		}		
+		.object-data-table-Orange {
+			color: DarkOrange;
+		}	
+		.object-data-table-purple {
+			color: purple;
+		}
+		
+		@media only screen and (max-width: 1500px) {
+			[class="myEmbeddedScene"] {
+				width: 100%;
+			}
+		}
+		@media only screen and (max-width: 1500px) {
+			[class="object-data-setting"] {
+				position: relative;
+				top: 0px;
+				right: 0px;
+				width: 100%;
+			}
+		}
+		@media only screen and (max-width: 1500px) {
+			[class="object-data-table-red"] {
+				position: relative;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+
+			}
+		}	
+		
+		.tableText {
+			font-family: Helvetica, "Microsoft YaHei", "LiHei Pro", TW-Kai;
+			color: Navy;
+			font-size: 20pt;		
+		}
+	
+    </style>
+	
+	<style scoped>
+	
+		.button-obj-make ,
+		.button-obj-kill ,
+		.button-obj-reset,
+		.button-Axis_set{
+		    color: white;
+            border-radius: 4px;
+			font-family: Helvetica, "Microsoft YaHei", "LiHei Pro", TW-Kai;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);		
+		}
+		.button-obj-reset {
+            background: rgb(28, 184, 65); /* this is a green */
+		}		
+		.button-obj-kill {
+            background: rgb(202, 60, 60); /* this is a maroon */	
+		}		
+        .button-obj-make {
+            background: rgb(66, 184, 221); /* this is a light blue */
+        }
+		.button-Axis_set {
+			background: rgb(223, 117, 20); /* this is an orange */
+		}
+    </style>
+</head>
+
+    <script>	  
+	AFRAME.registerComponent('log', {
+		schema: {type: 'string'},
+		init: function () {		
+			var stringToLog = this.data;
+			this.el.addEventListener('click', function () {
+				//console.log("old="+Selected_obj);
+				//remove_animate();
+				Selected_obj = stringToLog;//取得選重的obj名稱
+				//set_animate();
+				//console.log("new="+Selected_obj);
+				print_data(Selected_obj);
+			});
+		}
+	});
+
+	function change(change_type,dismention)
+	{
+		if(change_type =="position")
+			position_change(dismention);
+		if(change_type =="rotation")
+			rotation_change(dismention);
+		if(change_type =="size")
+			size_change(dismention);
+		if(change_type =="color")
+			color_change();				
+		print_data(Selected_obj);
+	}
+	function size_change(dismention)//物體大小
+	{
+		var unknown = sceneEl.querySelector('#'+Selected_obj);
+		if(dismention=="R")//reset
+		{
+			document.getElementById("width" ).value = 10;		
+			document.getElementById("height").value = 10;		
+			document.getElementById("depth" ).value = 10;
+			document.getElementById("radius").value = 10;
+
+		}
+		
+		var obj_type = unknown.getAttribute('geometry').primitive;
+		//console.log(obj_type);
+		if(obj_type == "box"){
+			unknown.setAttribute('geometry', 'width' ,document.getElementById("width").value/10);
+			unknown.setAttribute('geometry', 'height',document.getElementById("height").value/10);
+			unknown.setAttribute('geometry', 'depth' ,document.getElementById("depth").value/10);
+		}
+		else if(obj_type == "sphere"){
+			unknown.setAttribute('geometry', 'radius' ,document.getElementById("radius").value/10);
+		}
+		else if(obj_type == "cylinder"){
+			unknown.setAttribute('geometry', 'height',document.getElementById("height").value/10);
+			unknown.setAttribute('geometry', 'radius' ,document.getElementById("radius").value/10);
+		}
+		else if(obj_type == "cone"){
+			unknown.setAttribute('geometry', 'height',document.getElementById("height").value/10);
+			unknown.setAttribute('geometry', 'radiusBottom' ,document.getElementById("radius").value/10);
+			unknown.setAttribute('geometry', 'radiusTop' , 0.01);
+		}		
+		print_data(Selected_obj);
+	}	
+
+	function rotation_change(dismention)//旋轉物體
+	{
+		var unknown = sceneEl.querySelector('#'+Selected_obj);
+		if(dismention=="R")//reset
+		{
+			document.getElementById("RotationX").value=0;		
+			document.getElementById("RotationY").value=0;		
+			document.getElementById("RotationZ").value=0;
+		}
+		
+		unknown.setAttribute('rotation',
+			document.getElementById("RotationX").value+" "+
+			document.getElementById("RotationY").value+" "+
+			document.getElementById("RotationZ").value);
+		print_data(Selected_obj);
+	}
+	
+	function position_change(dismention)//移動物體位
+	{
+		var unknown = sceneEl.querySelector('#'+Selected_obj);
+		if(dismention=="R")//reset
+		{
+			document.getElementById("PositionX").value=0;		
+			document.getElementById("PositionY").value=0;		
+			document.getElementById("PositionZ").value=0;	
+		}
+		
+		unknown.setAttribute('position',
+			document.getElementById("PositionX").value/10+" "+
+			document.getElementById("PositionY").value/10+" "+
+			document.getElementById("PositionZ").value/10);	
+		print_data(Selected_obj);			
+	}
+	
+	function object_change()//改變物體
+	{
+		var unknown_object = sceneEl.querySelector('#'+Selected_obj);
+		var obj_tpye = get_obj_name(document.getElementById("ObjType").selectedIndex);//取得轉換的物體的名稱
+		if(obj_tpye == "box")
+		{				
+			unknown_object.setAttribute('geometry', 'primitive', 'box');
+			size_change("R");
+			document.getElementById('WidthSet').style.display = null;
+			document.getElementById('WidthText').style.display = null;
+			document.getElementById('HeightSet').style.display = null;
+			document.getElementById('HeightText').style.display = null;
+			document.getElementById('DepthSet').style.display = null;
+			document.getElementById('DepthText').style.display = null;
+			document.getElementById('RadiusSet').style.display = 'none';
+			document.getElementById('RadiusText').style.display = 'none';
+		}
+		if(obj_tpye == "sphere")
+		{				
+			unknown_object.setAttribute('geometry', 'primitive', 'sphere');
+			size_change("R");
+			document.getElementById('WidthSet').style.display = 'none';
+			document.getElementById('WidthText').style.display = 'none';
+			document.getElementById('HeightSet').style.display = 'none';
+			document.getElementById('HeightText').style.display = 'none';
+			document.getElementById('DepthSet').style.display = 'none';
+			document.getElementById('DepthText').style.display = 'none';
+			document.getElementById('RadiusSet').style.display = null;
+			document.getElementById('RadiusText').style.display = null;
+		}
+		if(obj_tpye == "cylinder")
+		{				
+			unknown_object.setAttribute('geometry', 'primitive', 'cylinder');
+			size_change("R");
+			document.getElementById('WidthSet').style.display = 'none';
+			document.getElementById('WidthText').style.display = 'none';
+			document.getElementById('HeightSet').style.display = null;
+			document.getElementById('HeightText').style.display = null;
+			document.getElementById('DepthSet').style.display = 'none';
+			document.getElementById('DepthText').style.display = 'none';
+			document.getElementById('RadiusSet').style.display = null;
+			document.getElementById('RadiusText').style.display = null;
+		}
+		if(obj_tpye == "cone")
+		{				
+			unknown_object.setAttribute('geometry', 'primitive', 'cone');
+			size_change("R");
+			document.getElementById('WidthSet').style.display = 'none';
+			document.getElementById('WidthText').style.display = 'none';
+			document.getElementById('HeightSet').style.display = null;
+			document.getElementById('HeightText').style.display = null;
+			document.getElementById('DepthSet').style.display = 'none';
+			document.getElementById('DepthText').style.display = 'none';
+			document.getElementById('RadiusSet').style.display = null;
+			document.getElementById('RadiusText').style.display = null;
+		}
+		
+
+		print_data(Selected_obj);
+	}	
+	
+	function color_change()
+	{	
+		var unknown_color = sceneEl.querySelector('#'+Selected_obj);
+		//console.log(unknown_color);	
+		//console.log(unknown_color.getAttribute('material'));
+		//console.log(unknown_color.getAttribute('material').color);
+		var color_type = get_color_name(document.getElementById("ColorType").selectedIndex);//取得轉換的物體的名稱
+		
+		if(color_type == "red")
+		{	
+			unknown_color.setAttribute('material', 'color', 'red');	
+		}
+		if(color_type == "yellow")
+		{
+			unknown_color.setAttribute('material', 'color', 'yellow');
+		}
+		if(color_type == "blue")
+		{
+			unknown_color.setAttribute('material', 'color', 'blue');
+		}
+		if(color_type == "green")
+		{
+			unknown_color.setAttribute('material', 'color', 'green');
+		}
+		if(color_type == "orange")
+		{
+			unknown_color.setAttribute('material', 'color', 'orange');
+		}
+		if(color_type == "purple")
+		{
+			unknown_color.setAttribute('material', 'color', 'purple');
+		}
+			//unknown_color.setAttribute('material', 'color', 'black');				
+
+	}
+
+	function get_obj_type(unknown_obj)
+	{	
+		return unknown_obj.getAttribute('geometry').primitive;
+	}
+	function get_obj_color(unknown_obj)
+	{	
+		return unknown_obj.getAttribute('material').color;
+	}
+	
+	function get_color_name(color_tpye)
+	{
+		//object select index
+			if(color_tpye == 0)
+				return "red";
+			if(color_tpye == 1)
+				return "orange";				
+			if(color_tpye == 2)
+				return "yellow";
+			if(color_tpye == 3)
+				return "green";					
+			if(color_tpye == 4)
+				return "blue";	
+			if(color_tpye == 5)
+				return "purple";	
+				
+		//顏色中文名
+			if(color_tpye == "red")
+				return "紅色";
+			if(color_tpye == "orange")
+				return "橙色";				
+			if(color_tpye == "yellow")
+				return "黃色";
+			if(color_tpye == "green")
+				return "綠色";				
+			if(color_tpye == "blue")
+				return "藍色";
+			if(color_tpye == "purple")
+				return "紫色";				
+	}
+	
+	function get_obj_name(obj_tpye)
+	{
+		//object select index
+			if(obj_tpye == 0)
+				return "box";
+			if(obj_tpye == 1)
+				return "sphere";
+			if(obj_tpye == 2)
+				return "cylinder";	
+			if(obj_tpye == 3)
+				return "cone";					
+				
+		//物體中文名
+			if(obj_tpye == "box")
+				return "立方體";
+			if(obj_tpye == "sphere")
+				return "球體";
+			if(obj_tpye == "cylinder")
+				return "圓柱";
+			if(obj_tpye == "cone")
+				return "圓椎";				
+	}
+	
+	var sceneEl;
+	var obj_number = 0;
+	var Selected_obj;
+	function start()
+	{	
+		sceneEl = document.querySelector('a-scene');
+		document.getElementById("ObjType").selectedIndex = 0;
+		document.getElementById('RadiusSet').style.display = 'none';
+		document.getElementById('RadiusText').style.display = 'none';
+		clear_print_data();
+	}
+	
+	function object_make()
+	{
+		//宣告
+		var new_obj = document.createElement('a-entity');
+		new_obj.setAttribute('id', 'obj' + obj_number);
+		sceneEl.appendChild(new_obj);
+		//預設
+		new_obj.setAttribute('geometry', 'primitive', 'box');
+		new_obj.setAttribute('material', 'color', 'red');
+		new_obj.setAttribute('log', 'obj' + obj_number);
+		new_obj.setAttribute('position', '0 0 0');
+		new_obj.setAttribute('rotation', '0 0 0');
+		new_obj.setAttribute('scale', '1 1 1');
+		new_obj.setAttribute('geometry','width', 1);
+		new_obj.setAttribute('geometry','height',1);
+		new_obj.setAttribute('geometry','depth', 1);
+
+		//自動被選重
+		Selected_obj = 'obj' + obj_number;
+		print_data(Selected_obj);
+		
+		//表格初始化
+		position_change("R");
+		rotation_change("R");
+		size_change("R");
+			document.getElementById('WidthSet').style.display = null;
+			document.getElementById('WidthText').style.display = null;
+			document.getElementById('HeightSet').style.display = null;
+			document.getElementById('HeightText').style.display = null;
+			document.getElementById('DepthSet').style.display = null;
+			document.getElementById('DepthText').style.display = null;
+			document.getElementById('RadiusSet').style.display = 'none';
+			document.getElementById('RadiusText').style.display = 'none';
+		document.getElementById('object_data_table').setAttribute('class','object-data-table-red');	
+		//set_animate();
+		obj_number++;
+	}
+	
+	function object_kill()
+	{
+		var entityEl = sceneEl.querySelector('#'+Selected_obj);
+		entityEl.parentNode.removeChild(entityEl);
+		clear_print_data();
+	}
+	
+	function print_data_color(color_type)
+	{
+		if(color_type == "red")	
+			document.getElementById('object_data_table').setAttribute('class','object-data-table-red');
+		if(color_type == "yellow")
+			document.getElementById('object_data_table').setAttribute('class','object-data-table-yellow');
+		if(color_type == "blue")
+			document.getElementById('object_data_table').setAttribute('class','object-data-table-blue');
+		if(color_type == "green")
+			document.getElementById('object_data_table').setAttribute('class','object-data-table-green');
+		if(color_type == "orange")
+			document.getElementById('object_data_table').setAttribute('class','object-data-table-orange');
+		if(color_type == "purple")
+			document.getElementById('object_data_table').setAttribute('class','object-data-table-purple');	
+	}
+	function print_data(Selected_obj)
+	{
+		document.getElementById('object_data_table').style.display = null;
+		var output;		
+		
+		
+		output = "名稱 = " + Selected_obj+"<br>";//name
+		var obj_detail = sceneEl.querySelector('#'+Selected_obj);
+
+		//output += "id = " + obj_detail.getAttribute('id')+"<br>";//id
+		output += "種類 = " + get_obj_name(get_obj_type(obj_detail))+"<br>";//object type
+		output += "顏色 = " + get_color_name(get_obj_color(obj_detail))+"<br>";//object color type
+		print_data_color(get_obj_color(obj_detail));
+		output += "位置(x,y,z)=("+
+				  obj_detail.object3D.position.x*10+","+
+				  obj_detail.object3D.position.y*10+","+
+				  obj_detail.object3D.position.z*10+")<br>";//position
+				  
+		output += "x軸旋轉"+THREE.Math.radToDeg(obj_detail.object3D.rotation.x)+"° "+
+				  "y軸旋轉"+THREE.Math.radToDeg(obj_detail.object3D.rotation.y)+"° "+
+				  "z軸旋轉"+THREE.Math.radToDeg(obj_detail.object3D.rotation.z)+"°<br>";//rotarion
+
+		//size		  
+		if(get_obj_type(obj_detail) == "box"){
+			output += "長 = "+obj_detail.getAttribute('geometry').width*10+" "+
+					  "寬 = "+obj_detail.getAttribute('geometry').depth*10+" "+
+					  "高 = "+obj_detail.getAttribute('geometry').height*10;
+		}  
+		if(get_obj_type(obj_detail) == "sphere"){
+			output += "半徑 = "+obj_detail.getAttribute('geometry').radius*10;
+		}
+		if(get_obj_type(obj_detail) == "cylinder"){		
+			output += "高 = "+obj_detail.getAttribute('geometry').height*10+" "+
+					  "半徑 = "+obj_detail.getAttribute('geometry').radius*10;
+		}
+		document.getElementById('object_data').innerHTML = output;
+
+	}
+	
+	function clear_print_data()
+	{
+		document.getElementById('object_data').innerHTML = "";
+		document.getElementById('object_data_table').style.display = 'none';
+	} 
+	
+	function set_animate()
+	{
+		var entityEl = sceneEl.querySelector('#'+Selected_obj);
+		var obj_ani = document.createElement('a-animation');	
+		obj_ani.setAttribute('repeat', 'indefinite');
+		obj_ani.setAttribute('attribute', 'scale');
+		obj_ani.setAttribute('dur', '750');
+		obj_ani.setAttribute('to', '1.1 1.1 1.1');
+		obj_ani.setAttribute('direction', 'alternate');
+		obj_ani.setAttribute('id', 'obj' + Selected_obj+'_animate');
+		entityEl.appendChild(obj_ani);
+
+		console.log('obj' + Selected_obj+'_animate'+'***set');		
+	}
+	function remove_animate()
+	{
+		var entityEl = sceneEl.querySelector('#'+Selected_obj);
+		//entityEl.removeChild();
+		var entityEl2 = document.getElementById('obj' + Selected_obj+'_animate');
+		//console.log(entityEl);
+		console.log(entityEl2);
+		entityEl2.parentNode.removeChild(entityEl2);
+		console.log('obj' + Selected_obj+'_animate'+'***reset');
+	}
+	function Axis_print()
+	{
+		var entityEl = document.getElementById('Axis');	
+		if(entityEl.getAttribute('visible') == true)
+		{
+			document.getElementById('Axis_set').innerHTML = "隱藏坐標軸"
+			entityEl.setAttribute('visible', false);			
+		}
+		else
+		{
+			document.getElementById('Axis_set').innerHTML = "顯示坐標軸"
+			entityEl.setAttribute('visible', true);				
+		}
+	}
+    window.addEventListener( "load", start, false );
+    </script>
+<body style="background-color: AliceBlue ;">
+  <div class="myEmbeddedScene" style ="box-sizing: border-box;">
+    <a-scene embedded>
+    <a-assets>
+      <img id="skyTexture" src="https://ucarecdn.com/696c52a8-eab5-4769-ac52-92068640e9fc/">
+      <img id="groundTexture" src="https://cdn.aframe.io/a-painter/images/floor.jpg">
+    </a-assets>
+    
+    <a-sky src="#skyTexture" ></a-sky>
+	
+	<a-entity id="Axis" visible="true">
+		<a-box id="X_Axis" position="0 0 0" width= "1000" height="0.01" depth= "0.01"  
+			material="color: red"></a-box>
+		<a-box id="Y_Axis" position="0 0 0" width= "0.01" height="1000" depth= "0.01"  
+			material="color: green"></a-box>
+		<a-box id="Z_Axis" position="0 0 0" width= "0.01" height="0.01" depth= "1000"  
+			material="color: blue"></a-box> 
+	</a-entity>
+	
+    <a-plane src="#groundTexture" position="0 -0.5 0" rotation="-90 0 0" width="30" height="30"></a-plane>
+    <a-light type="ambient" color="#445000"></a-light>
+    <a-light type="point" castShadow=true intensity="2" position="10 4 8"></a-light>
+    
+	<a-entity position="0 -0.5 2">
+		<a-camera>
+	      <a-cursor></a-cursor>	
+		</a-camera>
+	</a-entity>
+	
+    </a-scene>
+	</div>
+	<div class ="object-data-setting">
+		<h1><p class="tableText" align="center" style ="font-size: 30pt;">物體設定</p></h1>
+		
+	<button class="button-obj-make pure-button" 
+		id="objMake" onclick="object_make()">生成物件</button>
+	<button class="button-obj-kill pure-button" 
+		id="objKill" onclick="object_kill()">刪除物件</button>
+		
+	<button class="button-Axis_set pure-button" 
+		id="Axis_set" onclick="Axis_print()">顯示坐標軸</button>
+	
+	<form class="pure-form">
+		<fieldset>
+		    <div class="pure-u-1-3">
+				<label class="tableText">物體:</label>	  
+				<select id="ObjType" onchange="object_change()">
+					<option>立方體</option>
+					<option>球</option>
+					<option>圓柱</option>
+					<option>圓錐</option>
+				</select>
+			</div>
+		</fieldset>
+	</form>
+	
+	<form class="pure-form">
+		<fieldset>
+		    <div class="pure-u-1-3">
+				<label class="tableText">顏色:</label>	  
+				<select id="ColorType" onchange="change('color','C')">
+					<option>紅色</option>
+					<option>橙色</option>
+					<option>黃色</option>
+					<option>綠色</option>					
+					<option>藍色</option>
+					<option>紫色</option>
+				</select>
+			</div>
+		</fieldset>
+	</form>	
+
+		
+	<form id = "Position" class="pure-form"	action = "#">
+    <fieldset>
+        <label class="tableText">位置:</label>
+		
+		<label class="tableText">X:</label>		
+        <div class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="PositionX" value="0" onchange="change('position','X')"/>
+        </div>
+		
+		<label class="tableText">Y:</label>		
+        <div class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="PositionY" value="0" onchange="change('position','Y')"/>
+        </div>	
+		
+		<label class="tableText">Z:</label>		
+        <div class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="PositionZ" value="0" onchange="change('position','Z')"/>
+        </div>
+		
+		<div class="pure-u-1-8">
+			<button class="button-obj-reset pure-button" id="PositionReset" onclick="change('position','R')">重製</button>
+        </div>
+    </fieldset>
+	</form>
+	
+	<form id = "Rotation" class="pure-form"	action = "#">
+    <fieldset>
+        <label class="tableText">旋轉:</label>
+		
+		<label class="tableText">X:</label>		
+        <div class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="RotationX" value="0" onchange="change('rotation','X')"/>
+        </div>
+		
+		<label class="tableText">Y:</label>		
+        <div class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="RotationY" value="0" onchange="change('rotation','Y')"/>
+        </div>
+		
+		<label class="tableText">Z:</label>		
+        <div class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="RotationZ" value="0" onchange="change('rotation','Z')"/>
+        </div>
+		
+		<div class="pure-u-1-8">
+			<button class="button-obj-reset pure-button" id="RotationReset" onclick="change('rotation','R')">重製</button>
+        </div>
+    </fieldset>
+	</form>	
+
+	<form id = "Size" class="pure-form"	action = "#">
+    <fieldset>
+        <label class="tableText">大小:</label>
+		
+		<label id="WidthSet" class="tableText">長:</label>		
+        <div id="WidthText" class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="width" value="0" onchange="change('size','X')"/>
+        </div>
+
+		<label id="DepthSet" class="tableText">寬:</label>		
+        <div id="DepthText" class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="depth" value="0" onchange="change('size','Y')"/>
+        </div>
+
+		<label id="HeightSet" class="tableText">高:</label>		
+        <div id="HeightText" class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="height" value="0" onchange="change('size','Z')"/>
+        </div>
+
+		<label id="RadiusSet" class="tableText">半徑:</label>		
+        <div id="RadiusText" class="pure-u-1-8">
+			<input class="pure-input-1" type="text" id="radius" value="0" onchange="change('size','Z')"/>
+        </div>
+
+		<div class="pure-u-1-8">
+			<button class="button-obj-reset pure-button" id="SizeReset" onclick="change('size','R')">重製</button>
+        </div>
+		
+		<br><br>
+			<label class="tableText">將視角對上物體並點擊，即可選重物體</label>
+    </fieldset>
+	</form>	
+	</div>
+	<br>
+	<div id="object_data_table" class ="object-data-table">
+		<h1 id = "object_data"></h1>
+	</div>
+</body>
+</html>
